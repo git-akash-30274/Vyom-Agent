@@ -1,0 +1,26 @@
+{
+  "name": "vyom-agent",
+  "version": "1.0.0",
+  "description": "Autonomous & Semi-Autonomous Coding Agent IDE powered by local LLMs via Ollama",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "ai-agent",
+    "autonomous-agent",
+    "coding-agent",
+    "ollama",
+    "react-loop",
+    "ide",
+    "local-llm",
+    "self-correcting"
+  ],
+  "author": "AKASH-30274",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+

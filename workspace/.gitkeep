@@ -1,0 +1,3 @@
+# This file ensures the workspace directory is tracked in Git.
+# Any files generated inside workspace/ by the agent are ignored by .gitignore.
+

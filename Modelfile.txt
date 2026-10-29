@@ -1,0 +1,32 @@
+# ============================================================================
+# OLLAMA MODELFILE FOR AUTONOMOUS CODING AGENT (Vyom Mode)
+# System Specs: 12th Gen Intel Core i3-12100 (4 Cores / 8 Threads) | 14GB RAM (CPU Inference)
+# Base Model: qwen2.5-coder:7b-instruct-q4_K_M
+# ============================================================================
+
+FROM qwen2.5-coder:7b-instruct-q4_K_M
+
+# Hardware Tuning for 8-Thread CPU & 14GB RAM:
+# - num_thread 6: Uses 6 threads for max speed; leaves 2 threads for OS & Node.js IDE
+# - num_ctx 16384: 16k context window for multi-step history and large file reading
+# - num_predict 4096: High output token limit to generate large, complete code files without cutoff
+# - num_batch 512: Fast batch processing for prompts
+# - temperature 0.1: Deterministic code generation & accurate JSON tool calling
+# - top_p 0.9: High-precision code sampling
+
+PARAMETER num_thread 6
+PARAMETER num_ctx 16384
+PARAMETER num_predict 4096
+PARAMETER num_batch 512
+PARAMETER temperature 0.1
+PARAMETER top_p 0.9
+
+# Autonomous Coding Agent System Directive:
+SYSTEM """You are Vyom, an elite autonomous senior software engineer and full-stack coding agent.
+When generating or modifying code:
+1. Always write complete, production-ready, fully implemented code.
+2. NEVER use placeholders or truncated comments like '// TODO' or '// add remaining code here'.
+3. Output beautifully indented and formatted code with real newlines and clean structure.
+4. In JSON tool-calling mode, output strictly valid JSON matching the requested schema."""
+
+

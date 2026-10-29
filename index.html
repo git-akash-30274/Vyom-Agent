@@ -1,0 +1,2464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vyom Autonomous Coding Agent IDE</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310a37f'><path d='M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83'/></svg>">
+    <link rel="stylesheet" href="./theme.css">
+    <style>
+        /* ====================================================================
+         * RESET & CHATGPT DARK PALETTE
+         * ==================================================================== */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            /* Authentic ChatGPT Dark Palette */
+            --gpt-canvas: #212121;
+            --gpt-sidebar: #171717;
+            --gpt-surface: #2f2f2f;
+            --gpt-surface-hover: #383838;
+            --gpt-code: #0d0d0d;
+            --gpt-border: rgba(255, 255, 255, 0.1);
+            --gpt-border-subtle: rgba(255, 255, 255, 0.06);
+
+            --gpt-text: #ececec;
+            --gpt-text-secondary: #b4b4b4;
+            --gpt-text-muted: #8e8ea0;
+            --gpt-text-dim: #6e6e80;
+
+            /* ChatGPT Signature Accents */
+            --gpt-green: #10a37f;
+            --gpt-green-hover: #1a7f64;
+            --gpt-green-soft: rgba(16, 163, 127, 0.15);
+            --gpt-blue: #3b82f6;
+            --gpt-yellow: #f59e0b;
+            --gpt-red: #ef4444;
+
+            --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --font-mono: "JetBrains Mono", "Fira Code", Consolas, Menlo, monospace;
+        }
+
+        body {
+            font-family: var(--font-ui);
+            background-color: var(--gpt-canvas);
+            color: var(--gpt-text);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 13px;
+            user-select: none;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ====================================================================
+         * TOPBAR (ChatGPT Minimalist Style)
+         * ==================================================================== */
+        .topbar {
+            height: 48px;
+            background: var(--gpt-sidebar);
+            border-bottom: 1px solid var(--gpt-border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 50;
+            flex-shrink: 0;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #10a37f, #0d8265);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 12px rgba(16, 163, 127, 0.4);
+            color: #ffffff;
+        }
+
+        .brand-title {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-badge {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 12px;
+            background: var(--gpt-green-soft);
+            color: #34d399;
+            border: 1px solid rgba(16, 163, 127, 0.3);
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .topbar-center {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .model-selector-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--gpt-surface);
+            padding: 5px 12px;
+            border-radius: 16px;
+            border: 1px solid var(--gpt-border);
+            transition: border-color 0.15s ease;
+        }
+
+        .model-selector-pill:focus-within {
+            border-color: var(--gpt-green);
+        }
+
+        .model-select {
+            background: transparent;
+            border: none;
+            color: var(--gpt-text);
+            font-size: 12px;
+            font-family: var(--font-ui);
+            font-weight: 500;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .model-select option {
+            background: #2a2a2a;
+            color: #ffffff;
+        }
+
+        .workspace-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            color: var(--gpt-text-muted);
+            border: 1px solid var(--gpt-border);
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-size: 11.5px;
+            font-family: var(--font-mono);
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            background: var(--gpt-surface);
+            color: var(--gpt-text-secondary);
+            border: 1px solid var(--gpt-border);
+            transition: all 0.2s ease;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--gpt-text-dim);
+        }
+
+        .status-pill.idle .status-dot {
+            background: var(--gpt-green);
+            box-shadow: 0 0 8px rgba(16, 163, 127, 0.7);
+        }
+
+        .status-pill.thinking .status-dot {
+            background: #60a5fa;
+            box-shadow: 0 0 10px rgba(96, 165, 250, 0.8);
+            animation: pulse 1.2s infinite;
+        }
+
+        .status-pill.executing .status-dot {
+            background: #f59e0b;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.8);
+            animation: pulse 0.8s infinite;
+        }
+
+        .status-pill.waiting .status-dot {
+            background: #ec4899;
+            box-shadow: 0 0 10px rgba(236, 72, 153, 0.8);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(0.85); }
+        }
+
+        /* ====================================================================
+         * 3-PANE IDE CONTAINER
+         * ==================================================================== */
+        .ide-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 48px);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --------------------------------------------------------------------
+         * LEFT PANE: Workspace File Explorer
+         * -------------------------------------------------------------------- */
+        .left-pane {
+            width: 240px;
+            min-width: 190px;
+            max-width: 360px;
+            background: var(--gpt-sidebar);
+            border-right: 1px solid var(--gpt-border-subtle);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .pane-header {
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--gpt-border-subtle);
+            background: var(--gpt-sidebar);
+        }
+
+        .pane-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-weight: 600;
+            color: var(--gpt-text-muted);
+        }
+
+        .pane-actions {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--gpt-text-muted);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .icon-btn:hover {
+            background: var(--gpt-surface-hover);
+            color: #ffffff;
+        }
+
+        .left-pane.drag-over {
+            outline: 2px dashed var(--gpt-green) !important;
+            outline-offset: -3px;
+            background: rgba(16, 163, 127, 0.08) !important;
+        }
+
+        .import-status-banner {
+            margin: 6px 8px;
+            padding: 8px 10px;
+            background: rgba(16, 163, 127, 0.15);
+            border: 1px solid rgba(16, 163, 127, 0.35);
+            border-radius: 6px;
+            font-size: 11px;
+            color: #a7f3d0;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        .file-tree-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 6px;
+        }
+
+        .tree-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--gpt-text-secondary);
+            font-size: 12.5px;
+            transition: all 0.12s;
+            position: relative;
+        }
+
+        .tree-item:hover {
+            background: var(--gpt-surface);
+            color: #ffffff;
+        }
+
+        .tree-item.active {
+            background: var(--gpt-surface-hover);
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .tree-svg {
+            flex-shrink: 0;
+            display: block;
+        }
+
+        .tree-item .item-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tree-item .item-delete-btn {
+            opacity: 0;
+            background: transparent;
+            border: none;
+            color: var(--gpt-text-dim);
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .tree-item:hover .item-delete-btn {
+            opacity: 1;
+        }
+
+        .tree-item .item-delete-btn:hover {
+            color: var(--gpt-red);
+            background: rgba(239, 68, 68, 0.15);
+        }
+
+        .tree-folder-children {
+            padding-left: 14px;
+        }
+
+        .empty-tree-msg {
+            padding: 28px 16px;
+            text-align: center;
+            color: var(--gpt-text-dim);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        /* --------------------------------------------------------------------
+         * CENTER PANE: Code Editor + Bottom Terminal Drawer
+         * -------------------------------------------------------------------- */
+        .center-pane {
+            flex: 1;
+            min-width: 320px;
+            background: var(--gpt-canvas);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Editor Tab Bar */
+        .editor-tabs-bar {
+            height: 38px;
+            background: var(--gpt-sidebar);
+            border-bottom: 1px solid var(--gpt-border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            flex-shrink: 0;
+        }
+
+        .tabs-list {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+        }
+
+        .editor-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 8px 8px 0 0;
+            background: var(--gpt-canvas);
+            color: #ffffff;
+            font-size: 12px;
+            font-family: var(--font-mono);
+            border: 1px solid var(--gpt-border-subtle);
+            border-bottom: none;
+        }
+
+        .editor-tab .tab-unsaved-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--gpt-yellow);
+            display: none;
+        }
+
+        .editor-tab.unsaved .tab-unsaved-dot {
+            display: inline-block;
+        }
+
+        .editor-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-save {
+            background: var(--gpt-surface);
+            border: 1px solid var(--gpt-border);
+            color: #ffffff;
+            font-size: 11.5px;
+            font-weight: 500;
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-save:hover {
+            background: var(--gpt-green);
+            border-color: var(--gpt-green);
+        }
+
+        /* Editor Workspace Area */
+        .editor-body {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+            background: #181818;
+        }
+
+        .line-numbers {
+            width: 44px;
+            padding: 14px 8px;
+            background: #181818;
+            border-right: 1px solid var(--gpt-border-subtle);
+            color: var(--gpt-text-dim);
+            font-family: var(--font-mono);
+            font-size: 12.5px;
+            line-height: 20px;
+            text-align: right;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        .editor-textarea {
+            flex: 1;
+            padding: 14px 16px;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #ececec;
+            font-family: var(--font-mono);
+            font-size: 12.5px;
+            line-height: 20px;
+            resize: none;
+            white-space: pre;
+            overflow: auto;
+            tab-size: 2;
+        }
+
+        .editor-empty-state {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--gpt-text-dim);
+            gap: 12px;
+            user-select: none;
+            background: #181818;
+        }
+
+        /* Bottom Collapsible Terminal Drawer */
+        .bottom-terminal-pane {
+            height: 180px;
+            background: var(--gpt-code);
+            border-top: 1px solid var(--gpt-border-subtle);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: height 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .bottom-terminal-pane.collapsed {
+            height: 32px;
+        }
+
+        .terminal-header {
+            height: 32px;
+            background: var(--gpt-sidebar);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            border-bottom: 1px solid var(--gpt-border-subtle);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .terminal-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--gpt-text-secondary);
+            letter-spacing: 0.5px;
+        }
+
+        .terminal-output {
+            flex: 1;
+            padding: 10px 14px;
+            overflow-y: auto;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            line-height: 18px;
+            color: #d1d5db;
+            white-space: pre-wrap;
+            word-break: break-all;
+            user-select: text;
+        }
+
+        .terminal-input-bar {
+            height: 34px;
+            background: #121212;
+            border-top: 1px solid var(--gpt-border-subtle);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 8px;
+        }
+
+        .terminal-prompt-symbol {
+            color: var(--gpt-green);
+            font-family: var(--font-mono);
+            font-weight: 700;
+        }
+
+        .terminal-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #ffffff;
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+
+        /* --------------------------------------------------------------------
+         * RIGHT PANE: Autonomous Agent Panel (ChatGPT Style)
+         * -------------------------------------------------------------------- */
+        .right-pane {
+            width: 440px;
+            min-width: 360px;
+            max-width: 600px;
+            background: var(--gpt-canvas);
+            border-left: 1px solid var(--gpt-border-subtle);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        /* Agent Header */
+        .agent-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--gpt-border-subtle);
+            background: var(--gpt-sidebar);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .agent-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .agent-title-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        /* ChatGPT Segmented Mode Pill */
+        .mode-toggle-group {
+            display: flex;
+            background: var(--gpt-surface);
+            padding: 3px;
+            border-radius: 20px;
+            border: 1px solid var(--gpt-border-subtle);
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: none;
+            color: var(--gpt-text-muted);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mode-btn.active {
+            background: #424242;
+            color: #ffffff;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .step-progress-badge {
+            font-size: 11px;
+            font-family: var(--font-mono);
+            background: var(--gpt-surface);
+            border: 1px solid var(--gpt-border);
+            padding: 3px 10px;
+            border-radius: 14px;
+            color: var(--gpt-text-secondary);
+        }
+
+        /* ChatGPT Trajectory Timeline */
+        .agent-timeline {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        /* Empty State */
+        .timeline-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 16px;
+            color: var(--gpt-text-muted);
+            gap: 14px;
+        }
+
+        .timeline-empty .welcome-gpt-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10a37f, #0d8265);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(16, 163, 127, 0.3);
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        /* User Chat Message Bubble */
+        .user-msg-bubble {
+            align-self: flex-end;
+            background: #2f2f2f;
+            border: 1px solid var(--gpt-border);
+            color: #ececec;
+            padding: 10px 14px;
+            border-radius: 16px 16px 2px 16px;
+            max-width: 85%;
+            font-size: 13px;
+            line-height: 1.5;
+            word-break: break-word;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        /* Assistant Conversational Chat Bubble */
+        .assistant-chat-bubble {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: var(--gpt-surface);
+            border: 1px solid var(--gpt-border-subtle);
+            border-radius: 12px;
+            padding: 14px 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .assistant-chat-content {
+            flex: 1;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #ececec;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .mission-started-banner {
+            padding: 10px 14px;
+            background: rgba(16, 163, 127, 0.1);
+            border-left: 3px solid var(--gpt-green);
+            border-radius: 8px;
+            font-size: 12.5px;
+            color: #a7f3d0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        /* Step Card (ChatGPT Bubble Style) */
+        .step-card {
+            background: var(--gpt-surface);
+            border: 1px solid var(--gpt-border-subtle);
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .step-tag {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gpt-text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .step-tag .step-num {
+            background: rgba(16, 163, 127, 0.15);
+            padding: 2px 8px;
+            border-radius: 10px;
+            color: #34d399;
+            font-family: var(--font-mono);
+            font-weight: 700;
+        }
+
+        /* Thought Bubble with ChatGPT Avatar */
+        .thought-box {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #ececec;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 10px 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .gpt-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--gpt-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #ffffff;
+            margin-top: 1px;
+            box-shadow: 0 2px 6px rgba(16, 163, 127, 0.4);
+        }
+
+        /* Tool Call Badge */
+        .tool-badge-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--gpt-border);
+            border-radius: 8px;
+            font-family: var(--font-mono);
+            font-size: 11.5px;
+            color: #a5b4fc;
+        }
+
+        .tool-badge-box .tool-name {
+            font-weight: 700;
+            color: var(--gpt-green);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* Semi-Auto Approval Box */
+        .approval-card {
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .approval-heading {
+            font-size: 12px;
+            font-weight: 600;
+            color: #fcd34d;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .approval-details {
+            font-family: var(--font-mono);
+            font-size: 11.5px;
+            color: #fde68a;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 10px;
+            border-radius: 6px;
+            max-height: 120px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .approval-btns-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-approve {
+            background: var(--gpt-green);
+            color: #ffffff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.15s;
+        }
+
+        .btn-approve:hover { background: var(--gpt-green-hover); }
+
+        .btn-reject {
+            background: var(--gpt-surface);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #f87171;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s;
+        }
+
+        .btn-reject:hover { background: rgba(239, 68, 68, 0.2); color: #ffffff; }
+
+        /* Observation Box (Styled like ChatGPT Code Block) */
+        .observation-drawer {
+            border: 1px solid var(--gpt-border);
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--gpt-code);
+        }
+
+        .observation-toggle {
+            padding: 6px 12px;
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gpt-text-muted);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .observation-toggle:hover {
+            color: #ffffff;
+            background: #242424;
+        }
+
+        .observation-content {
+            padding: 10px 12px;
+            font-family: var(--font-mono);
+            font-size: 11.5px;
+            line-height: 17px;
+            color: #d1d5db;
+            max-height: 220px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            user-select: text;
+        }
+
+        .observation-content.collapsed {
+            display: none;
+        }
+
+        /* Finish Card */
+        .finish-card {
+            background: rgba(16, 163, 127, 0.1);
+            border: 1px solid rgba(16, 163, 127, 0.35);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 4px 20px rgba(16, 163, 127, 0.15);
+        }
+
+        .finish-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #34d399;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .finish-summary {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #ececec;
+            white-space: pre-wrap;
+        }
+
+        .touched-files-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .touched-file-pill {
+            background: rgba(16, 163, 127, 0.2);
+            color: #a7f3d0;
+            border: 1px solid rgba(16, 163, 127, 0.4);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .touched-file-pill:hover {
+            transform: scale(1.05);
+            background: rgba(16, 163, 127, 0.3);
+        }
+
+        /* --------------------------------------------------------------------
+         * CHATGPT FLOATING INPUT CAPSULE (Bottom Area)
+         * -------------------------------------------------------------------- */
+        .agent-input-container {
+            padding: 12px 16px 16px 16px;
+            background: var(--gpt-sidebar);
+            border-top: 1px solid var(--gpt-border-subtle);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .quick-suggestions-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+
+        .chip-btn {
+            background: var(--gpt-surface);
+            border: 1px solid var(--gpt-border-subtle);
+            color: var(--gpt-text-secondary);
+            padding: 5px 10px;
+            border-radius: 14px;
+            font-size: 11px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .chip-btn:hover {
+            background: var(--gpt-surface-hover);
+            color: #ffffff;
+            border-color: var(--gpt-border);
+        }
+
+        .input-capsule-wrapper {
+            background: var(--gpt-surface);
+            border: 1px solid var(--gpt-border);
+            border-radius: 18px;
+            padding: 8px 10px 8px 14px;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-capsule-wrapper:focus-within {
+            border-color: rgba(255, 255, 255, 0.28);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .task-textarea {
+            flex: 1;
+            height: 38px;
+            min-height: 38px;
+            max-height: 160px;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #ececec;
+            font-family: var(--font-ui);
+            font-size: 13.5px;
+            line-height: 20px;
+            resize: none;
+            padding: 8px 0;
+        }
+
+        .task-textarea::placeholder {
+            color: var(--gpt-text-dim);
+        }
+
+        /* ChatGPT Filled Circular Send / Run Button */
+        .btn-send-gpt {
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
+            border-radius: 50%;
+            background: #ffffff;
+            color: #171717;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-send-gpt:hover {
+            transform: scale(1.08);
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-send-gpt:active {
+            transform: scale(0.95);
+        }
+
+        .btn-send-gpt:disabled {
+            background: #3f3f46;
+            color: #71717a;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Red Stop Button when running */
+        .btn-stop-gpt {
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
+            border-radius: 50%;
+            background: var(--gpt-red);
+            color: #ffffff;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: transform 0.15s ease;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-stop-gpt:hover {
+            transform: scale(1.08);
+        }
+
+        .btn-stop-gpt.visible {
+            display: flex;
+        }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333333;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #484848;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ======================================================================
+         TOP NAVIGATION BAR
+         ====================================================================== -->
+    <header class="topbar">
+        <div class="brand-section">
+            <div class="brand-icon">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+            </div>
+            <div class="brand-title">
+                <span>Vyom</span>
+                <span class="brand-badge">Agent Mode</span>
+            </div>
+        </div>
+
+        <div class="topbar-center">
+            <div class="model-selector-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gpt-green)" stroke-width="2.2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                <select id="modelSelect" class="model-select" title="Active Ollama Model">
+                    <option value="qwen2.5-coder:7b-instruct-q4_K_M" selected>qwen2.5-coder:7b-instruct-q4_K_M</option>
+                </select>
+            </div>
+
+            <div class="workspace-pill" title="Active sandboxed workspace directory">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span>./workspace</span>
+            </div>
+        </div>
+
+        <div class="topbar-right">
+            <div id="statusPill" class="status-pill idle">
+                <span class="status-dot"></span>
+                <span id="statusText">Agent Ready</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ======================================================================
+         MAIN 3-PANE IDE
+         ====================================================================== -->
+    <div class="ide-container">
+
+        <!-- ------------------------------------------------------------------
+             LEFT PANE: Workspace File Explorer
+             ------------------------------------------------------------------ -->
+        <aside class="left-pane" id="leftPane">
+            <div class="pane-header">
+                <span class="pane-title">Workspace</span>
+                <div class="pane-actions">
+                    <button class="icon-btn" onclick="promptNewFile()" title="New File in ./workspace">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="12" y1="18" x2="12" y2="12"></line>
+                            <line x1="9" y1="15" x2="15" y2="15"></line>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" onclick="promptNewFolder()" title="New Folder in ./workspace">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                            <line x1="12" y1="11" x2="12" y2="17"></line>
+                            <line x1="9" y1="14" x2="15" y2="14"></line>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" onclick="triggerFolderImport()" title="Import Entire Folder into ./workspace">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                            <polyline points="9 13 12 10 15 13"></polyline>
+                            <line x1="12" y1="10" x2="12" y2="17"></line>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" onclick="clearWorkspacePrompt()" title="Clear ./workspace">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" onclick="refreshWorkspaceTree()" title="Refresh Tree">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hidden Inputs for Folder and File Imports -->
+            <input type="file" id="folderImportInput" webkitdirectory directory multiple style="display:none;" onchange="handleFolderSelect(event)">
+            <input type="file" id="fileImportInput" multiple style="display:none;" onchange="handleFileSelect(event)">
+
+            <!-- Folder Import Progress Status Banner -->
+            <div id="importProgressBar" class="import-status-banner" style="display:none;">
+                <span id="importStatusText">Importing files...</span>
+            </div>
+
+            <div class="file-tree-container" id="fileTreeContainer">
+                <div class="empty-tree-msg">Loading workspace...</div>
+            </div>
+        </aside>
+
+        <!-- ------------------------------------------------------------------
+             CENTER PANE: Code Editor & Collapsible Terminal
+             ------------------------------------------------------------------ -->
+        <main class="center-pane" id="centerPane">
+            <!-- Tabs Bar -->
+            <div class="editor-tabs-bar">
+                <div class="tabs-list" id="editorTabsList">
+                    <div class="editor-tab" id="activeFileTab" style="display: none;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        <span id="activeFileName">index.js</span>
+                        <span class="tab-unsaved-dot" title="Unsaved changes"></span>
+                    </div>
+                </div>
+
+                <div class="editor-actions">
+                    <button class="btn-save" id="saveFileBtn" onclick="saveCurrentFile()" title="Save changes (Ctrl+S)">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        <span>Save</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Code Editor Body -->
+            <div class="editor-body">
+                <div class="line-numbers" id="editorLineNumbers">1</div>
+                <textarea class="editor-textarea" id="codeEditor" spellcheck="false" placeholder=""></textarea>
+                
+                <div class="editor-empty-state" id="editorEmptyState">
+                    <div style="width: 44px; height: 44px; border-radius: 50%; background: #242424; display: flex; align-items: center; justify-content: center; color: var(--gpt-text-muted);">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <polyline points="16 18 22 12 16 6"></polyline>
+                            <polyline points="8 6 2 12 8 18"></polyline>
+                        </svg>
+                    </div>
+                    <div style="font-size: 13px; font-weight: 500; color: #ececec;">No File Open</div>
+                    <div style="font-size: 11.5px; opacity: 0.7;">Select a file from the explorer or prompt the Autonomous Agent to build one.</div>
+                </div>
+            </div>
+
+            <!-- Bottom Collapsible Terminal Drawer -->
+            <div class="bottom-terminal-pane" id="bottomTerminal">
+                <div class="terminal-header" onclick="toggleBottomTerminal()">
+                    <div class="terminal-title">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="4 17 10 11 4 5"></polyline>
+                            <line x1="12" y1="19" x2="20" y2="19"></line>
+                        </svg>
+                        <span>Workspace Terminal</span>
+                    </div>
+                    <div class="pane-actions" onclick="event.stopPropagation()">
+                        <button class="icon-btn" onclick="clearTerminalOutput()" title="Clear terminal logs">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="15" y1="9" x2="9" y2="15"></line>
+                                <line x1="9" y1="9" x2="15" y2="15"></line>
+                            </svg>
+                        </button>
+                        <button class="icon-btn" onclick="toggleBottomTerminal()" title="Minimize/Maximize">
+                            <span id="terminalChevron">▾</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="terminal-output" id="terminalOutput">$ Terminal initialized in ./workspace</div>
+
+                <div class="terminal-input-bar">
+                    <span class="terminal-prompt-symbol">$</span>
+                    <input type="text" class="terminal-input" id="terminalInput" placeholder="Run command in ./workspace (e.g. node -c app.js, ls, npm test)..." />
+                    <button class="icon-btn" onclick="executeManualTerminalCommand()" title="Run command">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- ------------------------------------------------------------------
+             RIGHT PANE: Autonomous Agent Panel (ChatGPT Style)
+             ------------------------------------------------------------------ -->
+        <aside class="right-pane" id="rightPane">
+            <!-- Header -->
+            <div class="agent-header">
+                <div class="agent-header-row">
+                    <div class="agent-title-badge">
+                        <div class="brand-icon" style="width: 22px; height: 22px;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                            </svg>
+                        </div>
+                        <span>Autonomous Agent</span>
+                    </div>
+
+                    <div class="step-progress-badge" id="stepCounterBadge">Step 0 / 100</div>
+                </div>
+
+                <div class="agent-header-row">
+                    <!-- Segmented Mode Switch -->
+                    <div class="mode-toggle-group">
+                        <button class="mode-btn active" id="btnFullAuto" onclick="setAgentMode('full_auto')">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                            </svg>
+                            <span>Full Auto</span>
+                        </button>
+                        <button class="mode-btn" id="btnSemiAuto" onclick="setAgentMode('semi_auto')">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                            <span>Semi-Auto</span>
+                        </button>
+                    </div>
+
+                    <div style="font-size: 11px; color: var(--gpt-text-dim);" id="modeDesc">
+                        Executes all steps automatically
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agent Timeline Stream -->
+            <div class="agent-timeline" id="agentTimeline">
+                <div class="timeline-empty" id="timelineEmptyState">
+                    <div class="welcome-gpt-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                        </svg>
+                    </div>
+                    <div style="font-size: 14px; font-weight: 600; color: #ececec;">How can I help you build today?</div>
+                    <div style="font-size: 12px; line-height: 1.6; max-width: 300px; color: var(--gpt-text-muted);">
+                        Describe your task below. The autonomous agent will inspect the workspace, write code, run shell commands, self-correct errors, and verify the final result step-by-step.
+                    </div>
+                </div>
+            </div>
+
+            <!-- ChatGPT Floating Input Capsule Area -->
+            <div class="agent-input-container">
+                <div class="quick-suggestions-row">
+                    <button class="chip-btn" onclick="useQuickPrompt('Analyze the imported project files in ./workspace, explain architecture and check for any errors')">🔍 Analyze Project</button>
+                    <button class="chip-btn" onclick="useQuickPrompt('Create an Express REST API in server.js with CRUD endpoints and test it with node -c')">REST API</button>
+                    <button class="chip-btn" onclick="useQuickPrompt('Build a responsive Todo Web App in index.html with localStorage and modern dark theme')">Todo Web App</button>
+                    <button class="chip-btn" onclick="useQuickPrompt('Inspect all files in workspace, find any syntax errors, and fix them')">Self-Heal Code</button>
+                </div>
+
+                <div class="input-capsule-wrapper">
+                    <textarea id="taskPrompt" class="task-textarea" rows="1" placeholder="Message Vyom Agent... (Shift+Enter for new line)"></textarea>
+
+                    <button class="btn-send-gpt" id="runAgentBtn" onclick="startAutonomousAgent()" title="Run Agent (Ctrl+Enter)">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="19" x2="12" y2="5"></line>
+                            <polyline points="5 12 12 5 19 12"></polyline>
+                        </svg>
+                    </button>
+
+                    <button class="btn-stop-gpt" id="stopAgentBtn" onclick="stopAutonomousAgent()" title="Stop Agent">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                            <rect x="5" y="5" width="14" height="14" rx="2"></rect>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- ======================================================================
+         VANILLA JAVASCRIPT: IDE & AUTONOMOUS AGENT CONTROLLER
+         ====================================================================== -->
+    <script>
+        // Global Application State
+        let currentMode = 'full_auto'; // 'full_auto' | 'semi_auto'
+        let currentOpenFilePath = null;
+        let isFileUnsaved = false;
+        let isAgentRunning = false;
+        let activeChatReplyContentEl = null;
+
+        // --------------------------------------------------------------------
+        // 1. INITIALIZATION & MODEL LOADER
+        // --------------------------------------------------------------------
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadAvailableModels();
+            await refreshWorkspaceTree();
+            setupEditorListeners();
+            setupKeyboardShortcuts();
+            setupTextareaAutoResize();
+            setupDragAndDrop();
+        });
+
+        async function loadAvailableModels() {
+            const selectEl = document.getElementById('modelSelect');
+            try {
+                const res = await fetch('/api/models');
+                const data = await res.json();
+                if (data.models && data.models.length > 0) {
+                    selectEl.innerHTML = '';
+                    data.models.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m;
+                        opt.textContent = m + (data.status === 'running' ? ' (Running)' : '');
+                        opt.selected = true;
+                        selectEl.appendChild(opt);
+                    });
+                }
+            } catch (err) {
+                console.warn('Could not load models list:', err);
+            }
+        }
+
+        function setAgentMode(mode) {
+            currentMode = mode;
+            const btnFull = document.getElementById('btnFullAuto');
+            const btnSemi = document.getElementById('btnSemiAuto');
+            const desc = document.getElementById('modeDesc');
+
+            if (mode === 'full_auto') {
+                btnFull.classList.add('active');
+                btnSemi.classList.remove('active');
+                desc.textContent = 'Executes all steps automatically';
+            } else {
+                btnFull.classList.remove('active');
+                btnSemi.classList.add('active');
+                desc.textContent = 'Pauses for user approval on write / run';
+            }
+        }
+
+        function useQuickPrompt(text) {
+            const area = document.getElementById('taskPrompt');
+            area.value = text;
+            area.style.height = 'auto';
+            area.style.height = Math.min(area.scrollHeight, 160) + 'px';
+            area.focus();
+        }
+
+        function autoResizeTextarea() {
+            const area = document.getElementById('taskPrompt');
+            if (area) {
+                area.style.height = 'auto';
+                area.style.height = Math.min(area.scrollHeight, 160) + 'px';
+            }
+        }
+
+        function setupTextareaAutoResize() {
+            const area = document.getElementById('taskPrompt');
+            if (area) {
+                area.addEventListener('input', autoResizeTextarea);
+            }
+        }
+
+        // --------------------------------------------------------------------
+        // FOLDER & FILE IMPORT TO ./workspace
+        // --------------------------------------------------------------------
+        function triggerFolderImport() {
+            const input = document.getElementById('folderImportInput');
+            if (input) input.click();
+        }
+
+        function triggerFileImport() {
+            const input = document.getElementById('fileImportInput');
+            if (input) input.click();
+        }
+
+        async function handleFolderSelect(event) {
+            const fileList = event.target.files;
+            if (!fileList || fileList.length === 0) return;
+            await processAndUploadFiles(fileList);
+            event.target.value = '';
+        }
+
+        async function handleFileSelect(event) {
+            const fileList = event.target.files;
+            if (!fileList || fileList.length === 0) return;
+            await processAndUploadFiles(fileList);
+            event.target.value = '';
+        }
+
+        async function processAndUploadFiles(fileList) {
+            const progressBar = document.getElementById('importProgressBar');
+            const statusText = document.getElementById('importStatusText');
+            progressBar.style.display = 'flex';
+            statusText.textContent = `Reading ${fileList.length} file(s)...`;
+
+            const IGNORE_PATTERNS = [
+                'node_modules/',
+                '.git/',
+                '.cache/',
+                '.next/',
+                'dist/',
+                'build/'
+            ];
+
+            const payloadFiles = [];
+
+            for (let i = 0; i < fileList.length; i++) {
+                const file = fileList[i];
+                let relPath = file.webkitRelativePath || file.name;
+
+                // Skip unwanted heavy build/git directories
+                if (IGNORE_PATTERNS.some(p => relPath.includes(p))) {
+                    continue;
+                }
+
+                statusText.textContent = `Reading [${i + 1}/${fileList.length}]: ${file.name}`;
+
+                try {
+                    const isBinary = /\.(png|jpg|jpeg|gif|ico|webp|svg|wasm|zip|tar|gz|pdf|woff|woff2|ttf|eot)$/i.test(file.name);
+                    const fileData = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        if (isBinary) {
+                            reader.onload = () => {
+                                const dataUrl = reader.result;
+                                const base64 = dataUrl.split(',')[1] || '';
+                                resolve({ content: base64, isBase64: true });
+                            };
+                            reader.onerror = reject;
+                            reader.readAsDataURL(file);
+                        } else {
+                            reader.onload = () => resolve({ content: reader.result, isBase64: false });
+                            reader.onerror = reject;
+                            reader.readAsText(file);
+                        }
+                    });
+
+                    payloadFiles.push({
+                        path: relPath,
+                        content: fileData.content,
+                        isBase64: fileData.isBase64
+                    });
+                } catch (readErr) {
+                    console.warn(`Could not read ${relPath}:`, readErr);
+                }
+            }
+
+            statusText.textContent = `Uploading ${payloadFiles.length} file(s) to ./workspace...`;
+
+            try {
+                // Upload in batches of 60 files to avoid oversized payloads
+                const BATCH_SIZE = 60;
+                let totalUploaded = 0;
+
+                for (let b = 0; b < payloadFiles.length; b += BATCH_SIZE) {
+                    const batch = payloadFiles.slice(b, b + BATCH_SIZE);
+                    statusText.textContent = `Saving batch [${Math.min(b + BATCH_SIZE, payloadFiles.length)}/${payloadFiles.length}] to ./workspace...`;
+
+                    const res = await fetch('/api/workspace/import-folder', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ files: batch, clearExisting: false })
+                    });
+                    const data = await res.json();
+                    if (!data.success) {
+                        throw new Error(data.error || 'Server error saving files');
+                    }
+                    totalUploaded += batch.length;
+                }
+
+                statusText.textContent = `✓ Imported ${totalUploaded} file(s) into ./workspace!`;
+                await refreshWorkspaceTree();
+
+                // Auto-open primary file in editor
+                const primaryFile = payloadFiles.find(f => /index\.html$|package\.json$|server\.js$|main\.js$|app\.js$|README\.md$/i.test(f.path)) || payloadFiles[0];
+                if (primaryFile) {
+                    openFileInEditor(primaryFile.path);
+                }
+
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                }, 3500);
+            } catch (uploadErr) {
+                statusText.textContent = `Upload failed: ${uploadErr.message}`;
+                setTimeout(() => { progressBar.style.display = 'none'; }, 5000);
+            }
+        }
+
+        async function clearWorkspacePrompt() {
+            if (!confirm("Are you sure you want to CLEAR all files inside ./workspace?\n(Your project root / Ai-agent files are completely safe and untouched).")) return;
+            try {
+                const res = await fetch('/api/workspace/clear', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    closeActiveEditor();
+                    await refreshWorkspaceTree();
+                } else {
+                    alert('Clear failed: ' + data.error);
+                }
+            } catch (err) {
+                alert('Request failed: ' + err.message);
+            }
+        }
+
+        function setupDragAndDrop() {
+            const pane = document.getElementById('leftPane');
+            if (!pane) return;
+
+            pane.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                pane.classList.add('drag-over');
+            });
+
+            pane.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                pane.classList.remove('drag-over');
+            });
+
+            pane.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                pane.classList.remove('drag-over');
+
+                const items = e.dataTransfer.items;
+                if (!items || items.length === 0) return;
+
+                const collectedFiles = [];
+
+                async function traverseFileTree(entry, currentPath = '') {
+                    if (entry.isFile) {
+                        const file = await new Promise((resolve) => entry.file(resolve));
+                        collectedFiles.push({
+                            file,
+                            relPath: currentPath ? `${currentPath}/${file.name}` : file.name
+                        });
+                    } else if (entry.isDirectory) {
+                        const dirReader = entry.createReader();
+                        const entries = await new Promise((resolve) => dirReader.readEntries(resolve));
+                        for (const child of entries) {
+                            await traverseFileTree(child, currentPath ? `${currentPath}/${entry.name}` : entry.name);
+                        }
+                    }
+                }
+
+                const entries = [];
+                for (let i = 0; i < items.length; i++) {
+                    const entry = items[i].webkitGetAsEntry ? items[i].webkitGetAsEntry() : null;
+                    if (entry) entries.push(entry);
+                }
+
+                if (entries.length > 0) {
+                    for (const entry of entries) {
+                        await traverseFileTree(entry);
+                    }
+                    const simulatedList = collectedFiles.map(f => {
+                        Object.defineProperty(f.file, 'webkitRelativePath', {
+                            value: f.relPath,
+                            writable: false
+                        });
+                        return f.file;
+                    });
+                    await processAndUploadFiles(simulatedList);
+                } else if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    await processAndUploadFiles(e.dataTransfer.files);
+                }
+            });
+        }
+
+        // --------------------------------------------------------------------
+        // 2. WORKSPACE FILE EXPLORER WITH CRISP SVG ICONS
+        // --------------------------------------------------------------------
+        async function refreshWorkspaceTree() {
+            const container = document.getElementById('fileTreeContainer');
+            try {
+                const res = await fetch('/api/workspace/tree');
+                const data = await res.json();
+                if (!data.tree || data.tree.length === 0) {
+                    container.innerHTML = '<div class="empty-tree-msg">Workspace is empty.<br>Click "+" above or prompt the Agent.</div>';
+                    return;
+                }
+                container.innerHTML = '';
+                renderTreeNodes(data.tree, container);
+            } catch (err) {
+                container.innerHTML = `<div class="empty-tree-msg" style="color:#f87171;">Failed to load files: ${escapeHtml(err.message)}</div>`;
+            }
+        }
+
+        function renderTreeNodes(nodes, parentEl) {
+            nodes.forEach(node => {
+                if (node.type === 'dir') {
+                    const folderDiv = document.createElement('div');
+                    folderDiv.className = 'tree-item';
+                    folderDiv.innerHTML = `
+                        <svg class="tree-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <span class="item-name">${escapeHtml(node.name)}</span>
+                        <button class="item-delete-btn" title="Delete folder" onclick="deleteWorkspaceItem('${escapeHtml(node.path)}', event)">✕</button>
+                    `;
+                    const childrenContainer = document.createElement('div');
+                    childrenContainer.className = 'tree-folder-children';
+                    renderTreeNodes(node.children || [], childrenContainer);
+
+                    folderDiv.onclick = (e) => {
+                        e.stopPropagation();
+                        childrenContainer.style.display = childrenContainer.style.display === 'none' ? 'block' : 'none';
+                    };
+
+                    parentEl.appendChild(folderDiv);
+                    parentEl.appendChild(childrenContainer);
+                } else {
+                    const fileDiv = document.createElement('div');
+                    fileDiv.className = 'tree-item' + (currentOpenFilePath === node.path ? ' active' : '');
+                    const iconSVG = getFileIconSVG(node.name);
+                    fileDiv.innerHTML = `
+                        ${iconSVG}
+                        <span class="item-name">${escapeHtml(node.name)}</span>
+                        <button class="item-delete-btn" title="Delete file" onclick="deleteWorkspaceItem('${escapeHtml(node.path)}', event)">✕</button>
+                    `;
+                    fileDiv.onclick = (e) => {
+                        e.stopPropagation();
+                        openFileInEditor(node.path);
+                    };
+                    parentEl.appendChild(fileDiv);
+                }
+            });
+        }
+
+        function getFileIconSVG(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            switch (ext) {
+                case 'js': case 'jsx': case 'mjs':
+                    return '<svg class="tree-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="15" x2="9" y2="15.01"></line><path d="M15 12v4a1 1 0 0 1-1 1h-1"></path></svg>';
+                case 'ts': case 'tsx':
+                    return '<svg class="tree-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="12" y1="13" x2="12" y2="18"></line></svg>';
+                case 'html':
+                    return '<svg class="tree-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><polyline points="9 13 7 15 9 17"></polyline><polyline points="15 13 17 15 15 17"></polyline></svg>';
+                case 'css':
+                    return '<svg class="tree-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 13h6"></path><path d="M9 16h6"></path></svg>';
+                case 'json':
+                    return '<svg class="tree-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><circle cx="10" cy="14" r="1"></circle><circle cx="14" cy="14" r="1"></circle></svg>';
+                case 'py':
+                    return '<svg class="tree-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>';
+                case 'php':
+                    return '<svg class="tree-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>';
+                case 'md':
+                    return '<svg class="tree-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="8" y2="17"></line><line x1="12" y1="13" x2="12" y2="17"></line><line x1="16" y1="13" x2="16" y2="17"></line></svg>';
+                default:
+                    return '<svg class="tree-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>';
+            }
+        }
+
+        async function promptNewFile() {
+            const fileName = prompt('Enter relative file path (e.g. index.js or src/app.js):');
+            if (!fileName || !fileName.trim()) return;
+            try {
+                const res = await fetch('/api/workspace/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: fileName.trim(), type: 'file' })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    await refreshWorkspaceTree();
+                    openFileInEditor(fileName.trim());
+                } else {
+                    alert('Error creating file: ' + data.error);
+                }
+            } catch (err) {
+                alert('Request failed: ' + err.message);
+            }
+        }
+
+        async function promptNewFolder() {
+            const folderName = prompt('Enter relative folder path (e.g. src or utils):');
+            if (!folderName || !folderName.trim()) return;
+            try {
+                const res = await fetch('/api/workspace/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: folderName.trim(), type: 'dir' })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    await refreshWorkspaceTree();
+                } else {
+                    alert('Error creating folder: ' + data.error);
+                }
+            } catch (err) {
+                alert('Request failed: ' + err.message);
+            }
+        }
+
+        async function deleteWorkspaceItem(relPath, event) {
+            if (event) event.stopPropagation();
+            if (!confirm(`Are you sure you want to delete '${relPath}'?`)) return;
+            try {
+                const res = await fetch('/api/workspace/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: relPath })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (currentOpenFilePath === relPath) {
+                        closeActiveEditor();
+                    }
+                    await refreshWorkspaceTree();
+                } else {
+                    alert('Error deleting: ' + data.error);
+                }
+            } catch (err) {
+                alert('Request failed: ' + err.message);
+            }
+        }
+
+        // --------------------------------------------------------------------
+        // 3. CODE EDITOR
+        // --------------------------------------------------------------------
+        async function openFileInEditor(relPath) {
+            try {
+                const res = await fetch(`/api/workspace/file?path=${encodeURIComponent(relPath)}`);
+                const data = await res.json();
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                currentOpenFilePath = relPath;
+                isFileUnsaved = false;
+
+                const tabEl = document.getElementById('activeFileTab');
+                const fileNameEl = document.getElementById('activeFileName');
+                const emptyStateEl = document.getElementById('editorEmptyState');
+                const editorEl = document.getElementById('codeEditor');
+
+                tabEl.style.display = 'flex';
+                tabEl.classList.remove('unsaved');
+                fileNameEl.textContent = relPath;
+                emptyStateEl.style.display = 'none';
+
+                editorEl.value = data.content;
+                updateLineNumbers();
+                highlightActiveTreeItem();
+            } catch (err) {
+                alert('Failed to read file: ' + err.message);
+            }
+        }
+
+        function closeActiveEditor() {
+            currentOpenFilePath = null;
+            isFileUnsaved = false;
+            document.getElementById('activeFileTab').style.display = 'none';
+            document.getElementById('editorEmptyState').style.display = 'flex';
+            document.getElementById('codeEditor').value = '';
+            updateLineNumbers();
+        }
+
+        async function saveCurrentFile() {
+            if (!currentOpenFilePath) return;
+            const content = document.getElementById('codeEditor').value;
+            const btn = document.getElementById('saveFileBtn');
+            const origHTML = btn.innerHTML;
+            btn.textContent = 'Saving...';
+
+            try {
+                const res = await fetch('/api/workspace/file', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: currentOpenFilePath, content })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    isFileUnsaved = false;
+                    document.getElementById('activeFileTab').classList.remove('unsaved');
+                    btn.textContent = 'Saved!';
+                    setTimeout(() => { btn.innerHTML = origHTML; }, 1200);
+                } else {
+                    alert('Save failed: ' + data.error);
+                    btn.innerHTML = origHTML;
+                }
+            } catch (err) {
+                alert('Save error: ' + err.message);
+                btn.innerHTML = origHTML;
+            }
+        }
+
+        function setupEditorListeners() {
+            const editorEl = document.getElementById('codeEditor');
+            const lineNumsEl = document.getElementById('editorLineNumbers');
+
+            editorEl.addEventListener('input', () => {
+                if (!isFileUnsaved) {
+                    isFileUnsaved = true;
+                    document.getElementById('activeFileTab').classList.add('unsaved');
+                }
+                updateLineNumbers();
+            });
+
+            editorEl.addEventListener('scroll', () => {
+                lineNumsEl.scrollTop = editorEl.scrollTop;
+            });
+
+            // Handle Tab indentation (insert 2 spaces)
+            editorEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    const start = editorEl.selectionStart;
+                    const end = editorEl.selectionEnd;
+                    editorEl.value = editorEl.value.substring(0, start) + '  ' + editorEl.value.substring(end);
+                    editorEl.selectionStart = editorEl.selectionEnd = start + 2;
+                    editorEl.dispatchEvent(new Event('input'));
+                }
+            });
+        }
+
+        function updateLineNumbers() {
+            const editorEl = document.getElementById('codeEditor');
+            const lineNumsEl = document.getElementById('editorLineNumbers');
+            const lines = (editorEl.value || '').split('\n').length;
+            let nums = '';
+            for (let i = 1; i <= lines; i++) {
+                nums += i + '\n';
+            }
+            lineNumsEl.textContent = nums || '1';
+        }
+
+        function highlightActiveTreeItem() {
+            const items = document.querySelectorAll('.tree-item');
+            items.forEach(el => {
+                const name = el.querySelector('.item-name')?.textContent;
+                if (currentOpenFilePath && currentOpenFilePath.endsWith(name)) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+        }
+
+        // --------------------------------------------------------------------
+        // 4. BOTTOM TERMINAL DRAWER
+        // --------------------------------------------------------------------
+        function toggleBottomTerminal() {
+            const term = document.getElementById('bottomTerminal');
+            const chevron = document.getElementById('terminalChevron');
+            term.classList.toggle('collapsed');
+            chevron.textContent = term.classList.contains('collapsed') ? '▴' : '▾';
+        }
+
+        function clearTerminalOutput() {
+            document.getElementById('terminalOutput').textContent = '$ Terminal cleared.';
+        }
+
+        async function executeManualTerminalCommand() {
+            const inputEl = document.getElementById('terminalInput');
+            const command = inputEl.value.trim();
+            if (!command) return;
+
+            const outputEl = document.getElementById('terminalOutput');
+            outputEl.textContent += `\n\n$ ${command}\n[Running command...]`;
+            outputEl.scrollTop = outputEl.scrollHeight;
+            inputEl.value = '';
+
+            try {
+                const res = await fetch('/api/workspace/terminal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command })
+                });
+                const data = await res.json();
+                outputEl.textContent += `\nExit code: ${data.exitCode}\n`;
+                if (data.stdout) outputEl.textContent += data.stdout + '\n';
+                if (data.stderr) outputEl.textContent += `STDERR:\n${data.stderr}\n`;
+                outputEl.scrollTop = outputEl.scrollHeight;
+
+                refreshWorkspaceTree();
+            } catch (err) {
+                outputEl.textContent += `\nError executing command: ${err.message}\n`;
+                outputEl.scrollTop = outputEl.scrollHeight;
+            }
+        }
+
+        document.getElementById('terminalInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                executeManualTerminalCommand();
+            }
+        });
+
+        // --------------------------------------------------------------------
+        // 5. AUTONOMOUS AGENT CONTROLLER (ReAct Loop SSE Stream)
+        // --------------------------------------------------------------------
+        async function startAutonomousAgent() {
+            const taskInput = document.getElementById('taskPrompt');
+            const task = taskInput.value.trim();
+            if (!task) {
+                taskInput.focus();
+                return;
+            }
+
+            const model = document.getElementById('modelSelect').value;
+            setAgentRunningState(true);
+
+            const timeline = document.getElementById('agentTimeline');
+            document.getElementById('timelineEmptyState').style.display = 'none';
+
+            // 1. Render User Message Bubble in the conversation
+            const userMsg = document.createElement('div');
+            userMsg.className = 'user-msg-bubble';
+            userMsg.textContent = task;
+            timeline.appendChild(userMsg);
+            timeline.scrollTop = timeline.scrollHeight;
+
+            // 2. Clear input & reset auto-resize height
+            taskInput.value = '';
+            autoResizeTextarea();
+
+            activeChatReplyContentEl = null;
+
+            try {
+                const response = await fetch('/api/agent/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        task,
+                        mode: currentMode,
+                        model
+                    })
+                });
+
+                if (!response.ok) {
+                    const err = await response.text();
+                    appendErrorToTimeline('Failed to initiate agent stream: ' + err);
+                    setAgentRunningState(false);
+                    return;
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const events = buffer.split('\n\n');
+                    buffer = events.pop(); // keep partial chunk
+
+                    for (const eventStr of events) {
+                        const trimmed = eventStr.trim();
+                        if (!trimmed.startsWith('data:')) continue;
+                        const jsonStr = trimmed.replace(/^data:\s*/, '');
+                        try {
+                            const eventObj = JSON.parse(jsonStr);
+                            handleAgentEvent(eventObj, timeline);
+                        } catch (parseErr) {
+                            console.warn('SSE JSON parse error:', parseErr, jsonStr);
+                        }
+                    }
+                }
+
+            } catch (err) {
+                appendErrorToTimeline('Stream disconnected: ' + err.message);
+            } finally {
+                setAgentRunningState(false);
+                refreshWorkspaceTree();
+            }
+        }
+
+        async function stopAutonomousAgent() {
+            try {
+                await fetch('/api/agent/stop', { method: 'POST' });
+            } catch (e) {}
+            setAgentRunningState(false);
+        }
+
+        function setAgentRunningState(running) {
+            isAgentRunning = running;
+            const runBtn = document.getElementById('runAgentBtn');
+            const stopBtn = document.getElementById('stopAgentBtn');
+            const pill = document.getElementById('statusPill');
+            const statusText = document.getElementById('statusText');
+
+            if (running) {
+                runBtn.style.display = 'none';
+                stopBtn.classList.add('visible');
+                pill.className = 'status-pill thinking';
+                statusText.textContent = 'Agent Working...';
+            } else {
+                runBtn.style.display = 'flex';
+                stopBtn.classList.remove('visible');
+                pill.className = 'status-pill idle';
+                statusText.textContent = 'Agent Ready';
+            }
+        }
+
+        function handleAgentEvent(evt, timeline) {
+            const stepCounter = document.getElementById('stepCounterBadge');
+            const pill = document.getElementById('statusPill');
+            const statusText = document.getElementById('statusText');
+
+            if (evt.step && evt.maxSteps) {
+                stepCounter.textContent = `Step ${evt.step} / ${evt.maxSteps}`;
+            }
+
+            switch (evt.type) {
+                case 'chat_start':
+                    pill.className = 'status-pill thinking';
+                    statusText.textContent = 'Assistant Replying...';
+                    const chatBubble = document.createElement('div');
+                    chatBubble.className = 'assistant-chat-bubble';
+                    chatBubble.innerHTML = `
+                        <div class="gpt-avatar">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                            </svg>
+                        </div>
+                        <div class="assistant-chat-content"></div>
+                    `;
+                    timeline.appendChild(chatBubble);
+                    activeChatReplyContentEl = chatBubble.querySelector('.assistant-chat-content');
+                    timeline.scrollTop = timeline.scrollHeight;
+                    break;
+
+                case 'chat_chunk':
+                    if (activeChatReplyContentEl) {
+                        activeChatReplyContentEl.textContent += evt.text;
+                        timeline.scrollTop = timeline.scrollHeight;
+                    }
+                    break;
+
+                case 'chat_done':
+                    setAgentRunningState(false);
+                    pill.className = 'status-pill idle';
+                    statusText.textContent = 'Agent Ready';
+                    activeChatReplyContentEl = null;
+                    break;
+
+                case 'session_start':
+                    pill.className = 'status-pill thinking';
+                    statusText.textContent = 'Mission Started';
+                    const missionBanner = document.createElement('div');
+                    missionBanner.className = 'mission-started-banner';
+                    missionBanner.innerHTML = `
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            <strong>Autonomous Mission Started</strong>
+                        </div>
+                        <div style="font-size:11.5px; opacity:0.85;">Task: "${escapeHtml(evt.task)}"</div>
+                    `;
+                    timeline.appendChild(missionBanner);
+                    timeline.scrollTop = timeline.scrollHeight;
+                    break;
+
+                case 'step_start':
+                    pill.className = 'status-pill thinking';
+                    statusText.textContent = `Step ${evt.step}: Thinking`;
+                    const card = document.createElement('div');
+                    card.className = 'step-card';
+                    card.id = `step_card_${evt.step}`;
+                    card.innerHTML = `
+                        <div class="step-card-header">
+                            <div class="step-tag">
+                                <span class="step-num">Step ${evt.step}</span>
+                                <span>ReAct Iteration</span>
+                            </div>
+                            <span style="font-size:11px; color:var(--gpt-text-dim);">${new Date().toLocaleTimeString()}</span>
+                        </div>
+                    `;
+                    timeline.appendChild(card);
+                    timeline.scrollTop = timeline.scrollHeight;
+                    break;
+
+                case 'thought':
+                    const activeCard = document.getElementById(`step_card_${evt.step}`);
+                    if (activeCard) {
+                        const thoughtDiv = document.createElement('div');
+                        thoughtDiv.className = 'thought-box';
+                        thoughtDiv.innerHTML = `
+                            <div class="gpt-avatar">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                                </svg>
+                            </div>
+                            <span>${escapeHtml(evt.thought)}</span>
+                        `;
+                        activeCard.appendChild(thoughtDiv);
+                        timeline.scrollTop = timeline.scrollHeight;
+                    }
+                    break;
+
+                case 'tool_call':
+                    pill.className = 'status-pill executing';
+                    statusText.textContent = `Tool: ${evt.tool}`;
+                    const toolCard = document.getElementById(`step_card_${evt.step}`);
+                    if (toolCard) {
+                        const toolDiv = document.createElement('div');
+                        toolDiv.className = 'tool-badge-box';
+                        const argDisplay = evt.args.path || evt.args.command || (evt.args.summary ? 'Final Summary' : JSON.stringify(evt.args));
+                        toolDiv.innerHTML = `
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gpt-green)" stroke-width="2">
+                                <polyline points="16 18 22 12 16 6"></polyline>
+                                <polyline points="8 6 2 12 8 18"></polyline>
+                            </svg>
+                            <span class="tool-name">${escapeHtml(evt.tool)}</span>
+                            <span style="color:#ffffff;">${escapeHtml(argDisplay)}</span>
+                        `;
+                        toolCard.appendChild(toolDiv);
+                        timeline.scrollTop = timeline.scrollHeight;
+                    }
+                    break;
+
+                case 'approval_required':
+                    pill.className = 'status-pill waiting';
+                    statusText.textContent = `Awaiting Approval`;
+                    const appCard = document.getElementById(`step_card_${evt.step}`);
+                    if (appCard) {
+                        const approvalDiv = document.createElement('div');
+                        approvalDiv.className = 'approval-card';
+                        approvalDiv.id = `approval_box_${evt.step}`;
+                        const details = evt.args.content ? evt.args.content.slice(0, 300) : (evt.args.command || JSON.stringify(evt.args, null, 2));
+                        approvalDiv.innerHTML = `
+                            <div class="approval-heading">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fcd34d" stroke-width="2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                </svg>
+                                <span>Approval Required (Semi-Auto)</span>
+                            </div>
+                            <div style="font-size:12px; color:#ffffff;">Action: <strong>${escapeHtml(evt.tool)}</strong> on <code>${escapeHtml(evt.args.path || evt.args.command || '')}</code></div>
+                            <div class="approval-details">${escapeHtml(details)}</div>
+                            <div class="approval-btns-row">
+                                <button class="btn-approve" onclick="resolveStepApproval(true)">
+                                    ✓ Approve & Run
+                                </button>
+                                <button class="btn-reject" onclick="resolveStepApproval(false)">
+                                    ✕ Reject
+                                </button>
+                            </div>
+                        `;
+                        appCard.appendChild(approvalDiv);
+                        timeline.scrollTop = timeline.scrollHeight;
+                    }
+                    break;
+
+                case 'approval_result':
+                    const appBox = document.getElementById(`approval_box_${evt.step}`);
+                    if (appBox) {
+                        appBox.innerHTML = evt.approved
+                            ? '<div style="color:#34d399; font-weight:600; font-size:12px;">✓ Approved by user. Executing action...</div>'
+                            : `<div style="color:#f87171; font-weight:600; font-size:12px;">✕ Rejected by user (${escapeHtml(evt.reason || 'Cancelled')}). Agent adapting...</div>`;
+                    }
+                    break;
+
+                case 'observation':
+                    const obsCard = document.getElementById(`step_card_${evt.step}`);
+                    if (obsCard) {
+                        const obsDiv = document.createElement('div');
+                        obsDiv.className = 'observation-drawer';
+                        obsDiv.innerHTML = `
+                            <div class="observation-toggle" onclick="toggleObservationDrawer(this)">
+                                <span style="display: flex; align-items: center; gap: 6px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="4 17 10 11 4 5"></polyline>
+                                        <line x1="12" y1="19" x2="20" y2="19"></line>
+                                    </svg>
+                                    <span>Observation (${escapeHtml(evt.tool)})</span>
+                                </span>
+                                <span>▾</span>
+                            </div>
+                            <div class="observation-content">${escapeHtml(evt.output)}</div>
+                        `;
+                        obsCard.appendChild(obsDiv);
+                        timeline.scrollTop = timeline.scrollHeight;
+                    }
+                    break;
+
+                case 'workspace_updated':
+                    refreshWorkspaceTree();
+                    if (currentOpenFilePath && currentOpenFilePath === evt.changedPath) {
+                        openFileInEditor(currentOpenFilePath);
+                    }
+                    break;
+
+                case 'finish':
+                    pill.className = 'status-pill idle';
+                    statusText.textContent = 'Mission Accomplished';
+                    const finishCard = document.createElement('div');
+                    finishCard.className = 'finish-card';
+                    
+                    let touchedHTML = '';
+                    if (evt.touchedFiles && evt.touchedFiles.length > 0) {
+                        touchedHTML = '<div style="font-size:11.5px; font-weight:600; color:#a7f3d0; margin-top:6px;">Files Modified / Created:</div><div class="touched-files-list">'
+                            + evt.touchedFiles.map(f => `<span class="touched-file-pill" onclick="openFileInEditor('${escapeHtml(f)}')">${escapeHtml(f)}</span>`).join('')
+                            + '</div>';
+                    }
+
+                    finishCard.innerHTML = `
+                        <div class="finish-header">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            <span>Mission Accomplished (${evt.totalSteps} Steps)</span>
+                        </div>
+                        <div class="finish-summary">${escapeHtml(evt.summary)}</div>
+                        ${touchedHTML}
+                    `;
+                    timeline.appendChild(finishCard);
+                    timeline.scrollTop = timeline.scrollHeight;
+                    refreshWorkspaceTree();
+                    break;
+
+                case 'error':
+                    appendErrorToTimeline(evt.message);
+                    break;
+
+                case 'aborted':
+                    const abortDiv = document.createElement('div');
+                    abortDiv.style.cssText = 'padding:10px 14px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:8px; color:#fca5a5; font-size:12.5px; font-weight:600;';
+                    abortDiv.textContent = '🛑 ' + (evt.message || 'Agent stopped by user.');
+                    timeline.appendChild(abortDiv);
+                    timeline.scrollTop = timeline.scrollHeight;
+                    break;
+
+                case 'max_steps_reached':
+                    const maxDiv = document.createElement('div');
+                    maxDiv.style.cssText = 'padding:10px 14px; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.3); border-radius:8px; color:#fde68a; font-size:12px;';
+                    maxDiv.textContent = '⚠️ ' + evt.message;
+                    timeline.appendChild(maxDiv);
+                    break;
+            }
+        }
+
+        async function resolveStepApproval(approved) {
+            let reason = '';
+            if (!approved) {
+                reason = prompt('Optional feedback for rejecting (the agent will adjust based on this):') || 'Rejected by user';
+            }
+            try {
+                await fetch('/api/agent/approve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ approved, reason })
+                });
+            } catch (err) {
+                alert('Approval request failed: ' + err.message);
+            }
+        }
+
+        function toggleObservationDrawer(headerEl) {
+            const content = headerEl.nextElementSibling;
+            const arrow = headerEl.querySelector('span:last-child');
+            content.classList.toggle('collapsed');
+            arrow.textContent = content.classList.contains('collapsed') ? '▸' : '▾';
+        }
+
+        function appendErrorToTimeline(msg) {
+            const timeline = document.getElementById('agentTimeline');
+            const errDiv = document.createElement('div');
+            errDiv.style.cssText = 'padding:10px 14px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.35); border-radius:8px; color:#fca5a5; font-size:12px; font-family:var(--font-mono);';
+            errDiv.textContent = '❌ ' + msg;
+            timeline.appendChild(errDiv);
+            timeline.scrollTop = timeline.scrollHeight;
+        }
+
+        function setupKeyboardShortcuts() {
+            window.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    saveCurrentFile();
+                }
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    if (document.activeElement === document.getElementById('taskPrompt')) {
+                        e.preventDefault();
+                        startAutonomousAgent();
+                    }
+                }
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+    </script>
+</body>
+</html>
